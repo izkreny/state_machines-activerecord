@@ -221,4 +221,38 @@ class MachineWithEnumIntegrationTest < BaseTestCase
     assert_includes generated_methods, 'status_completed'
     assert_includes generated_methods, 'status_failed'
   end
+
+  test 'should generate no methods when the enum prefix is disabled' do
+    machine = @model.state_machine(:status, enum: { prefix: false }) do
+      state :pending, :processing, :completed, :failed
+    end
+    record = @model.create(status: :pending)
+
+    assert_empty machine.state_machine_methods
+    assert_not record.respond_to?(:status_pending?)
+    assert_not @model.respond_to?(:status_pending)
+    assert record.pending?
+    assert_equal [record], @model.pending.to_a
+  end
+
+  test 'should generate methods with a custom enum prefix and no scopes' do
+    machine = @model.state_machine(:status, enum: { prefix: :machine, scopes: false }) do
+      state :pending, :processing, :completed, :failed
+    end
+    record = @model.create(status: :pending)
+
+    assert record.machine_pending?
+    assert_not record.machine_processing?
+    assert_not record.respond_to?(:status_pending?)
+    assert_not @model.respond_to?(:machine_pending)
+    assert_includes machine.state_machine_methods, 'machine_pending?'
+  end
+
+  test 'should reject an unknown enum option' do
+    error = assert_raises(ArgumentError) do
+      @model.state_machine(:status, enum: { scope: false })
+    end
+
+    assert_match(/Unknown key: :scope\b/, error.message)
+  end
 end
