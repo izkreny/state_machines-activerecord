@@ -499,8 +499,6 @@ module StateMachines
         def detect_enum_integration
           return nil unless owner_class.defined_enums.key?(attribute.to_s)
 
-          # For now, auto-detect enum and enable basic integration
-          # Later we can add explicit configuration options
           {
             enabled: true,
             prefix: true,
@@ -509,7 +507,14 @@ module StateMachines
             enum_values: owner_class.defined_enums[attribute.to_s] || {},
             original_enum_methods: detect_existing_enum_methods,
             state_machine_methods: []
-          }
+          }.merge(enum_options)
+        end
+
+        # The machine's +enum+ option, which sets +prefix+, +suffix+ and +scopes+
+        #
+        # @raise [ArgumentError] when it carries any other key
+        def enum_options
+          integration_options.fetch(:enum, {}).tap { |options| options.assert_valid_keys(:prefix, :suffix, :scopes) }
         end
 
         # Initialize enum integration if enum is detected
@@ -1002,7 +1007,7 @@ module StateMachines
 
         # @return [Array<Symbol>] machine options added by this integration
         def integration_options
-          [:direct_assignment]
+          %i[direct_assignment enum]
         end
 
         # Classes that inherit from ActiveRecord::Base will automatically use

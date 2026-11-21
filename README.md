@@ -374,11 +374,16 @@ to ActiveRecord's normal integer handling.
 
 ### Configuration Options
 
-The enum integration supports several configuration options:
+The enum integration supports several configuration options, set with the machine's `enum` option:
 
-- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts
+- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts: the attribute name, or the name given
 - `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes
 - `scopes` (default: true) - Controls whether state machine scopes are generated
+
+```ruby
+state_machine :status, enum: { prefix: false }                   # generates nothing: use the enum's own methods
+state_machine :status, enum: { prefix: :machine, scopes: false } # machine_pending?, and no scopes
+```
 
 ## State driven validations
 
