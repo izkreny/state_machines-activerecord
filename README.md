@@ -306,6 +306,25 @@ machine.state_machine_methods
 # => ["status_pending?", "status_processing?", "status_completed?", "status_cancelled?", ...]
 ```
 
+### Requirements for Enum Integration
+
+- The state machine attribute must match an existing Rails enum attribute
+- Auto-detection is enabled by default when this condition is met
+- Declare the states by name and leave their values to the enum: a state with an explicit `value:` matches the integer while the enum reads back the name, so `create!` fails with "Status is invalid"
+
+### Configuration Options
+
+The enum integration supports several configuration options, set with the machine's `enum` option:
+
+- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts: the attribute name, or the name given
+- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes: set it with `prefix: false`, or the methods get both
+- `scopes` (default: true) - Controls whether state machine scopes are generated
+
+```ruby
+state_machine :status, enum: { prefix: false }                   # generates nothing: use the enum's own methods
+state_machine :status, enum: { prefix: :machine, scopes: false } # machine_pending?, and no scopes
+```
+
 ## Integer-backed state attributes
 
 Integer columns whose states don't declare explicit values are converted
@@ -366,24 +385,6 @@ StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes 
 
 With this setting disabled, integer-backed state attributes are left entirely
 to ActiveRecord's normal integer handling.
-
-### Requirements for Enum Integration
-
-- The state machine attribute must match an existing Rails enum attribute
-- Auto-detection is enabled by default when this condition is met
-
-### Configuration Options
-
-The enum integration supports several configuration options, set with the machine's `enum` option:
-
-- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts: the attribute name, or the name given
-- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes: set it with `prefix: false`, or the methods get both
-- `scopes` (default: true) - Controls whether state machine scopes are generated
-
-```ruby
-state_machine :status, enum: { prefix: false }                   # generates nothing: use the enum's own methods
-state_machine :status, enum: { prefix: :machine, scopes: false } # machine_pending?, and no scopes
-```
 
 ## State driven validations
 
