@@ -377,7 +377,7 @@ to ActiveRecord's normal integer handling.
 The enum integration supports several configuration options, set with the machine's `enum` option:
 
 - `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts: the attribute name, or the name given
-- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes
+- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes: set it with `prefix: false`, or the methods get both
 - `scopes` (default: true) - Controls whether state machine scopes are generated
 
 ```ruby

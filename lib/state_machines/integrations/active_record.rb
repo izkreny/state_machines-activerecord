@@ -507,23 +507,35 @@ module StateMachines
             enum_values: owner_class.defined_enums[attribute.to_s] || {},
             original_enum_methods: detect_existing_enum_methods,
             state_machine_methods: []
-          }.merge(enum_options)
+          }
         end
 
         # The machine's +enum+ option, which sets +prefix+, +suffix+ and +scopes+
         #
-        # @raise [ArgumentError] when it carries any other key
+        # @raise [ArgumentError] when it is not a Hash, carries any other key,
+        #   or is given for an attribute that is not a Rails enum
         def enum_options
-          integration_options.fetch(:enum, {}).tap { |options| options.assert_valid_keys(:prefix, :suffix, :scopes) }
+          return {} unless integration_options.key?(:enum)
+
+          options = integration_options[:enum]
+          unless options.is_a?(Hash)
+            raise ArgumentError, "Invalid enum: #{options.inspect} (expected a Hash of :prefix, :suffix and :scopes)"
+          end
+
+          options.assert_valid_keys(:prefix, :suffix, :scopes)
+          return options if owner_class.defined_enums.key?(attribute.to_s)
+
+          raise ArgumentError, "The enum option needs a Rails enum on #{attribute.inspect}, declared before the machine"
         end
 
         # Initialize enum integration if enum is detected
         def initialize_enum_integration
+          options = enum_options
           detected_config = detect_enum_integration
           return unless detected_config
 
           # Store enum integration metadata
-          self.enum_integration = detected_config
+          self.enum_integration = detected_config.merge(options)
         end
 
         # Override state method to trigger method generation after states are defined

@@ -255,4 +255,38 @@ class MachineWithEnumIntegrationTest < BaseTestCase
 
     assert_match(/Unknown key: :scope\b/, error.message)
   end
+
+  test 'should reject an unknown enum option on an attribute without an enum' do
+    error = assert_raises(ArgumentError) do
+      new_model.state_machine(:status, enum: { scope: false })
+    end
+
+    assert_match(/Unknown key: :scope\b/, error.message)
+  end
+
+  test 'should reject the enum option on an attribute without an enum' do
+    error = assert_raises(ArgumentError) do
+      new_model.state_machine(:status, enum: { prefix: false })
+    end
+
+    assert_match(/enum/, error.message)
+  end
+
+  test 'should reject an enum option that is not a hash' do
+    error = assert_raises(ArgumentError) do
+      @model.state_machine(:status, enum: false)
+    end
+
+    assert_match(/enum/, error.message)
+  end
+
+  test 'should generate suffixed methods when the prefix is disabled' do
+    @model.state_machine(:status, enum: { prefix: false, suffix: true }) do
+      state :pending, :processing, :completed, :failed
+    end
+    record = @model.create(status: :pending)
+
+    assert record.pending_status?
+    assert_not record.respond_to?(:status_pending_status?)
+  end
 end
